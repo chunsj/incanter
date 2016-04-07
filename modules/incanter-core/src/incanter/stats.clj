@@ -378,7 +378,7 @@
       (pdf-uniform 5 :min 1 :max 10)
   "
   ([x & {:keys [min max] :or {min 0.0 max 1.0}}]
-    (let [dist (DoubleUniform. min max (DoubleMersenneTwister.))]
+    (let [dist (DoubleUniform. (double min) (double max) (DoubleMersenneTwister.))]
       (if (coll? x)
         (map #(.pdf dist %) x)
         (.pdf dist x)))))
