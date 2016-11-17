@@ -76,7 +76,7 @@
   ([data]
      (m/matrix data))
 
-  ([data ncol &]
+  ([data ncol]
      (m/matrix (partition ncol (vectorize data))))
 
   ([init-val rows cols]
@@ -715,7 +715,7 @@
      (m/clone mat)))
 
 (defn to-vect
-  "Converts an array into nested Clojure vectors. 
+  "Converts an array into nested Clojure vectors.
 
   Returns a vector-of-vectors if the given matrix is two-dimensional
   and a flat vector if the matrix is one-dimensional. This is a bit
@@ -1422,8 +1422,8 @@
                    (ds/select-columns c))
            res (if-not (nil? filter-fn)
                  (->> (ds/row-maps res)
-                      (clojure.core/filter filter-fn)
-                      (dataset (ds/column-names res)))
+                      (mapv #(mapv % col-names))
+                      (clojure.core/filter filter-fn))
                  res)]
 
        (cond
@@ -1830,14 +1830,15 @@
 
   "
   ([cols order]
-    ($order cols order $data))
+   ($order cols order $data))
   ([cols order data]
-    (let [key-cols (if (coll? cols) cols [cols])
-          key-fn (fn [row] (into [] (map #(map-get row %) key-cols)))
-          comp-fn (if (= order :desc)
-                    (comparator (fn [a b] (pos? (compare a b))))
-                    compare)]
-      (dataset (col-names data) (sort-by key-fn comp-fn (m/rows data))))))
+   (let [key-cols (if (coll? cols) cols [cols])
+         key-fn (fn [row] (into [] (map #(map-get row %) key-cols)))
+         comp-fn (if (= order :desc)
+                   (comparator (fn [a b] (pos? (compare a b))))
+                   compare)]
+     (ds/dataset (ds/column-names data)
+                 (sort-by key-fn comp-fn (ds/row-maps data))))))
 
 
 
@@ -1889,7 +1890,7 @@
     (view ($where ($fn [Species] ($in Species #{\"virginica\" \"setosa\"})) (get-dataset :iris)))
   "
   ([col-bindings body]
-    `(fn [{:keys ~col-bindings}] ~body)))
+   `(fn [{:keys ~col-bindings}] ~body)))
 
 
 
